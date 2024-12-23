@@ -3,10 +3,12 @@
 #include <string.h>
 #include "avlTree.h"
 void loadPatients(int argc,char* argv[],AVLTree myTree);
+Patient youngestPatient(AVLTree t) ;
 
 int main(int argc,char* argv[])
 {
     AVLTree myTree, pos;
+    Patient youngest =NULL;
     int exit, val, height;
     char command;
     myTree = CreateTree();
@@ -38,13 +40,15 @@ int main(int argc,char* argv[])
                 break;
             case 'b':
                   loadPatients(argc,argv,myTree);
-//                printf("enter value: ");
-//                scanf("%d", &val);
-//                myTree = InsertElement(val, myTree);
-                DisplayTree(myTree);
+//
                 break;
             case 'c':
-                DisplayTreeStructure(myTree, 0);
+                 youngest = youngestPatient(myTree);  // Correct usage
+                if (youngest != NULL) {
+                    printf("Youngest Patient: %s %s\n", youngest->name, youngest->surname);
+                } else {
+                    printf("No patients found.\n");
+                }
                 break;
             case 'k':
                 exit = TRUE;
@@ -83,42 +87,78 @@ void loadPatients(int argc, char* argv[], AVLTree t) {
     printf("%s",title);
     // Read patient data line by line
     while (1) {
-        struct patient* newNode = (struct patient*) malloc(sizeof(struct patient));
-        if (newNode == NULL) {
-            printf("Out of memory!\n");
-            fclose(file);
-            exit(1); // Exit if memory allocation fails
-        }
-
-        // Allocate memory for the patient's birthday
-        newNode->birthday = (struct date*) malloc(sizeof(struct date));
-        if (newNode->birthday == NULL) {
-            printf("Out of memory!\n");
-            free(newNode);
-            fclose(file);
-            exit(1); // Exit if memory allocation fails
-        }
+        char name[20];
+        char surname[20];
+        struct date birthday;
+        float patient_height;
+        float patient_weight;
+        float bmi;
 
         // Read the patient data from the file
         if (fscanf(file, "%20[^;];%20[^;];%d/%d/%d;%f;%f;%f\n",
-                   newNode->name, newNode->surname,
-                   &newNode->birthday->day, &newNode->birthday->month,
-                   &newNode->birthday->year, &newNode->patient_height,
-                   &newNode->patient_weight, &newNode->bmi) != 8) {
+                   name, surname,
+                   &birthday.day, &birthday.month,
+                   &birthday.year, &patient_height,
+                   &patient_weight, &bmi) != 8) {
             DisplayTree(t);
 
             printf("\nDone loading patients\n");
-            free(newNode->birthday);
-            free(newNode);
-            break; // Exit if reading fails (end of file)
+
+            break;
         }
 
-        // Initialize left and right pointers for the AVL node
-        newNode->left = newNode->right = NULL;
 
-        // Insert the new patient data into the tree
-        t = InsertElement(newNode, t);
+       Patient newDetails = newPatients(name,surname, birthday,patient_height,patient_weight,bmi);
+
+
+        t = InsertElement(newDetails, t);
     }
 
     fclose(file); // Close the file after reading
 }
+
+ //int dateInDays(struct date birthday){
+  //  return birthday.day +(birthday.month * 30) + (birthday.year * 365);
+//}
+
+
+//
+//Patient youngestPatient(AVLTree t) {
+//    if (t == NULL) {
+//        return NULL; // If the tree is empty, return NULL
+//    }
+//
+//    Patient youngest = NULL;
+//    int minDays = INT_MAX;  // Initialize to a large number so any valid date will update this
+//
+//    // Traverse the left subtree
+//    Patient leftYoungest = youngestPatient(t->left);
+//    if (leftYoungest != NULL) {
+//        int leftDays = dateInDays(leftYoungest->birthday);
+//        if (leftDays < minDays) {
+//            minDays = leftDays;
+//            youngest = leftYoungest;
+//        }
+//    }
+//
+//    // Check the patients in the current node
+//    for (int i = 0; i < t->patientNumber; ++i) {
+//        int patientDays = dateInDays(t->patientDetails[i]->birthday);
+//        if (patientDays < minDays) {
+//            minDays = patientDays;
+//            youngest = t->patientDetails[i];
+//        }
+//    }
+//
+//    // Traverse the right subtree
+//    Patient rightYoungest = youngestPatient(t->right);
+//    if (rightYoungest != NULL) {
+//        int rightDays = dateInDays(rightYoungest->birthday);
+//        if (rightDays < minDays) {
+//            minDays = rightDays;
+//            youngest = rightYoungest;
+//        }
+//    }
+//
+//    return youngest; // Return the youngest patient found
+//}

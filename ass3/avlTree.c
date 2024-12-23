@@ -71,95 +71,89 @@ AVLTree MakeEmptyTree(AVLTree t)
     }
     return NULL;
 }
-
-AVLTree InsertElement(AVLTree newNode, AVLTree t)
-{
-
-    if (t == NULL)
-    {
-        t = (struct patient*) malloc(sizeof(struct patient));
+AVLTree InsertElement(Patient newDetails, AVLTree t) {
+    if (t == NULL) {
+        t = (AVLTree) malloc(sizeof(struct Node));
         if (t == NULL) {
             printf("Out of memory space!!!\n");
             return NULL;
         }
 
-        t->birthday = (struct date*) malloc(sizeof(struct date));  // Allocate memory for birthday
-        if (t->birthday == NULL) {
-            printf("Out of memory space for birthday!!!\n");
-            free(t);
-            return NULL;
+        t->bmi = newDetails->bmi;
+        t->patientNumber = 1;
+        t->patientDetails = (struct patient**) malloc(sizeof(struct patient));
+        if(t->patientDetails == NULL) {
+            printf("Memory allocation failed\n");
+            exit(1);
         }
-
-        else
-        {
-            strcpy(t->name,newNode->name);
-            strcpy(t->surname,newNode->surname);
-            t->bmi=newNode->bmi;
-            t->birthday->year=newNode->birthday->year;
-            t->birthday->day=newNode->birthday->day;
-            t->birthday->month=newNode->birthday->month;
-            t->patient_height=newNode->patient_height;
-            t->patient_weight=newNode->patient_weight;
-            t->height = 0;
-            t->left = t->right = NULL;
-        }
+        t->patientDetails[0] = newDetails; // store the patient details
+        t->height = 0;
+        t->left = t->right = NULL;
     }
-    else if ( newNode->bmi <  t->bmi)
-    {
-        t->left = InsertElement(newNode, t->left);
-
-        if (AVLTreeHeight(t->left) - AVLTreeHeight(t->right) == 2)
-            if (newNode->bmi <  t->left->bmi)
+    else if (newDetails->bmi < t->bmi) {
+        t->left = InsertElement(newDetails, t->left);
+        if (AVLTreeHeight(t->left) - AVLTreeHeight(t->right) == 2) {
+            if (newDetails->bmi < t->left->bmi)
                 t = SingleRotateWithLeft(t);
             else
                 t = DoubleRotateWithLeft(t);
+        }
     }
-    else if (newNode->bmi > t->bmi)
-    {
-        t->right = InsertElement(newNode, t->right);
-        if (AVLTreeHeight(t->right) - AVLTreeHeight(t->left) == 2)
-            if (newNode->bmi  > t->right->bmi)
+    else if (newDetails->bmi > t->bmi) {
+        t->right = InsertElement(newDetails, t->right);
+        if (AVLTreeHeight(t->right) - AVLTreeHeight(t->left) == 2) {
+            if (newDetails->bmi > t->right->bmi)
                 t = SingleRotateWithRight(t);
             else
                 t = DoubleRotateWithRight(t);
+        }
     }
-    else if(newNode->bmi == t->bmi){
-
-
+    else {
+        // If BMI is the same, add the new patient to the existing list
+        t->patientNumber++;
+        t->patientDetails = realloc(t->patientDetails, t->patientNumber * sizeof(Patient));
+        if (t->patientDetails == NULL) {
+            printf("Memory allocation failed during reallocation\n");
+            exit(1);
+        }
+        t->patientDetails[t->patientNumber - 1] = newDetails;
     }
-    /* else val is in the tree already ... do nothing */
+
     t->height = Max(AVLTreeHeight(t->left), AVLTreeHeight(t->right)) + 1;
-
     return t;
 }
 
-void DisplayTree(AVLTree t)
-{
-    if (t != NULL)
-    {
 
+void DisplayTree(AVLTree t) {
+    if (t != NULL) {
         DisplayTree(t->left);
-        printf("%.2f\n", t->bmi);
+
+        for (int i = 0; i < t->patientNumber ; i++) {
+            printf("%s;%s;%d/%d/%d;%.2f;%.2f;%.2f\n",t->patientDetails[i]->name,t->patientDetails[i]->surname,
+                   t->patientDetails[i]->birthday.day,t->patientDetails[i]->birthday.month,t->patientDetails[i]->birthday.year,
+                   t->patientDetails[i]->patient_height,t->patientDetails[i]->patient_weight,
+                   t->patientDetails[i]->bmi);
+        }
         DisplayTree(t->right);
     }
 }
 
-void DisplayTreeStructure(AVLTree t, int depth)
-{
-    int i;
-
-    if (t != NULL)
-    {
-        DisplayTreeStructure(t->right, depth + 1);
-
-        for (i = 0; i < depth; i++)
-            printf("     ");
-        printf("%.2f\n", t->bmi);
-
-        DisplayTreeStructure(t->left, depth + 1);
-    }
-}
-
+//void DisplayTreeStructure(AVLTree t, int depth)
+//{
+//    int i;
+//
+//    if (t != NULL)
+//    {
+//        DisplayTreeStructure(t->right, depth + 1);
+//
+//        for (i = 0; i < depth; i++)
+//            printf("     ");
+//        printf("%.2f\n", t->bmi);
+//
+//        DisplayTreeStructure(t->left, depth + 1);
+//    }
+//}
+//
 int AVLTreeHeight(AVLTree t)
 {
     if (t == NULL)
@@ -223,3 +217,4 @@ int Max(int x, int y)
     else
         return y;
 }
+
